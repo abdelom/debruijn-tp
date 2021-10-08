@@ -129,16 +129,43 @@ def solve_out_tips(graph, ending_nodes):
     pass
 
 def get_starting_nodes(graph):
-    pass
+    l_start = []
+    for node in graph:
+        list_it = list(graph.predecessors(node))
+        if len(list_it) == 0:
+            l_start.append(node)
+    return l_start
 
 def get_sink_nodes(graph):
-    pass
+    l_end = []
+    for node in graph:
+        list_it = list(graph.successors(node))
+        if len(list_it) == 0:
+            l_end.append(node)
+    return l_end
 
 def get_contigs(graph, starting_nodes, ending_nodes):
-    pass
+    list_contig = []
+    seq = ""
+    for start in starting_nodes:
+        for end in ending_nodes:
+            if nx.has_path(graph, start, end):
+                for path in nx.all_simple_paths(graph, start, end):
+                    for elem in path:
+                        seq += elem[0]
+                    seq += elem[1:]
+                    list_contig.append((seq,len(seq)))
+                    seq = ""
+    return list_contig
 
 def save_contigs(contigs_list, output_file):
-    pass
+    i = 0
+    with open(output_file, "w") as filout:
+        for contig in contigs_list:
+            seq, length = contig
+            filout.write(">contig_{} len={}\n".format(i, length))
+            filout.write(seq + "\n")
+            i += 1
 
 
 def fill(text, width=80):
@@ -182,12 +209,10 @@ def main():
     # Get arguments
     args = get_arguments()
     kmer = build_kmer_dict(args.fastq_file, args.kmer_size)
-    count = 0
-    for value in kmer.values():
-        count += value
-    print(count)
-    build_graph(kmer)
-
+    g = build_graph(kmer)
+    s = get_starting_nodes(g)
+    e = get_sink_nodes(g)
+    save_contigs(get_contigs(g, s, e), "eee")
     # Fonctions de dessin du graphe
     # A decommenter si vous souhaitez visualiser un petit 
     # graphe
