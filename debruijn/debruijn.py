@@ -17,7 +17,7 @@ import argparse
 import os
 import sys
 import networkx as nx
-#import matplotlib
+import matplotlib
 from operator import itemgetter
 import random
 random.seed(9001)
@@ -115,18 +115,31 @@ def remove_paths(graph, path_list, delete_entry_node, delete_sink_node):
     return graph
 
 def std(data):
-    pass
+    return statistics.stdev(data)
 
 
 def select_best_path(graph, path_list, path_length, weight_avg_list, 
                      delete_entry_node=False, delete_sink_node=False):
-    pass
+    best_index = list(range(len(path_list)))
+    path_length_tmp = path_length.copy()
+    if len(weight_avg_list) < 2 and std(weight_avg_list) != 0:
+        best_index = [i for i, x in enumerate(weight_avg_list) if x == max(weight_avg_list)]
+        path_length_tmp = [path_length[i] for i in best_index]
+    if len(path_length_tmp) < 2 and std(path_length_tmp) != 0.0:
+        best_index = [i for i in best_index if path_length == max(path_length[i])]
+    best_index = best_index[random.randint(0, len(best_index))]
+    path_list = [path_list[i] for i in range(len(path_list)) if i == best_index]
+    print(path_list)
+    graph = remove_paths(graph, path_list, delete_entry_node, delete_sink_node)
+    print(best_index)
+    return graph
+    
 
 def path_average_weight(graph, path):
-    weigth_total = 0
-    for _, _, weigth in graph.subgraph(path).edges(data=True):
-        weigth_total += weigth["weigth"]
-    return weigth_total / (len(path) - 1)
+    weight_total = 0
+    for weight in graph.subgraph(path).edges(data=True):
+        weight_total += weight[2]["weight"]
+    return weight_total / (len(path) - 1)
 
 def solve_bubble(graph, ancestor_node, descendant_node):
     pass
@@ -176,7 +189,7 @@ def save_contigs(contigs_list, output_file):
         for contig in contigs_list:
             seq, length = contig
             filout.write(">contig_{} len={}\n".format(i, length))
-            filout.write(seq + "\n")
+            filout.write(fill(seq) + "\n")
             i += 1
 
 
@@ -225,6 +238,10 @@ def main():
     s = get_starting_nodes(g)
     e = get_sink_nodes(g)
     save_contigs(get_contigs(g, s, e), "eee")
+    graph_1 = nx.DiGraph()
+    graph_1.add_edges_from([(1, 2), (3, 2), (2, 4), (4, 5), (5, 6), (5, 7)])
+    graph_1 = select_best_path(graph_1, [[1,2], [3,2]], [1, 1], [5, 10], delete_entry_node=True)
+
     # Fonctions de dessin du graphe
     # A decommenter si vous souhaitez visualiser un petit 
     # graphe
