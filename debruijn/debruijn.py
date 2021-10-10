@@ -225,7 +225,6 @@ def get_sink_nodes(graph):
             l_end.append(node)
     return l_end
 
-
 def get_contigs(graph, starting_nodes, ending_nodes):
     list_contig = []
     seq = ""
