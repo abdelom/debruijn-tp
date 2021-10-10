@@ -94,13 +94,11 @@ def build_kmer_dict(fastq_file, kmer_size):
                 k_mer_dict[k_mer] += 1
     return k_mer_dict
 
-
 def build_graph(kmer_dict):
     G = nx.DiGraph()
     for key, value in kmer_dict.items():
         G.add_edge(key[:-1], key[1:] , weight = value)
     return G
-
 
 def remove_paths(graph, path_list, delete_entry_node, delete_sink_node):
     for path in path_list:
@@ -125,14 +123,11 @@ def select_best_path(graph, path_list, path_length, weight_avg_list,delete_entry
         path_length = [path_length[i] for i in range(len(weight_avg_list)) if weight_avg_list[i] == max_weight]
     if len(path_length) >= 2 :
         max_length = max(path_length)
-        path_list = [path_list[i] for i in range(len(path_length)) if path_length[i] == max_length]
-    print(path_list)   
+        path_list = [path_list[i] for i in range(len(path_length)) if path_length[i] == max_length] 
     best_path = path_list[random.randint(0, len(path_list) - 1)]
-    print(best_path)
     path_list = [path for path in path_list_tmp if path != best_path]
     graph = remove_paths(graph, path_list, delete_entry_node, delete_sink_node)
     return graph
-    
 
 def path_average_weight(graph, path):
     weight_total = 0
@@ -159,7 +154,7 @@ def simplify_bubbles(graph):
             for i, pred1 in enumerate(liste_predecesseurs):
                 for pred2 in liste_predecesseurs[i+1:]:
                     noeud_anc = nx.lowest_common_ancestor(graph, pred1, pred2)
-                    if noeud_anc!= None:
+                    if noeud_anc != None:
                         bubble = True
                         break
     # La simplification ayant pour conséquence de supprimer des noeuds du hash
@@ -168,11 +163,51 @@ def simplify_bubbles(graph):
         graph = simplify_bubbles(solve_bubble(graph,noeud_anc, nd))                    
     return graph
 
+
 def solve_entry_tips(graph, starting_nodes):
-    pass
+    entry = False
+    for nd in graph.nodes:
+        length_list = []
+        weight_list = []
+        path_list = []
+        if nd != None :
+            liste_predecesseurs = list(graph.predecessors(nd))
+            if len(liste_predecesseurs) > 1:
+                for start in starting_nodes:
+                    path_list += list(nx.all_simple_paths(graph, start, nd))
+                for path in path_list:
+                    weight_list.append(path_average_weight(graph, path))
+                    length_list.append(len(path))
+                    entry = True
+                break 
+    if entry:
+        graph = select_best_path(graph, path_list, length_list, weight_list, True)
+        starting_nodes = get_starting_nodes(graph) 
+        graph =  solve_entry_tips(graph , starting_nodes)
+    return graph
+
 
 def solve_out_tips(graph, ending_nodes):
-    pass
+    out = False
+    for nd in graph.nodes:
+        length_list = []
+        weight_list = []
+        path_list = []
+        if nd != None :
+            liste_successors = list(graph.successors(nd))
+            if len(liste_successors) > 1:
+                for end in ending_nodes:
+                    path_list += list(nx.all_simple_paths(graph, nd, end))
+                for path in path_list:
+                    weight_list.append(path_average_weight(graph, path))
+                    length_list.append(len(path))
+                    out = True
+                break 
+    if out:
+        graph = select_best_path(graph, path_list, length_list, weight_list, False, True)
+        ending_nodes = get_sink_nodes(graph) 
+        graph =  solve_out_tips(graph, ending_nodes)
+    return graph
 
 def get_starting_nodes(graph):
     l_start = []
@@ -212,7 +247,6 @@ def save_contigs(contigs_list, output_file):
             filout.write(">contig_{} len={}\n".format(i, length))
             filout.write(fill(seq) + "\n")
             i += 1
-
 
 def fill(text, width=80):
     """Split text with a line return to respect fasta format"""
