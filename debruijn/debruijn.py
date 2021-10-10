@@ -117,21 +117,20 @@ def remove_paths(graph, path_list, delete_entry_node, delete_sink_node):
 def std(data):
     return statistics.stdev(data)
 
-
-def select_best_path(graph, path_list, path_length, weight_avg_list, 
-                     delete_entry_node=False, delete_sink_node=False):
-    best_index = list(range(len(path_list)))
-    path_length_tmp = path_length.copy()
-    if len(weight_avg_list) < 2 and std(weight_avg_list) != 0:
-        best_index = [i for i, x in enumerate(weight_avg_list) if x == max(weight_avg_list)]
-        path_length_tmp = [path_length[i] for i in best_index]
-    if len(path_length_tmp) < 2 and std(path_length_tmp) != 0.0:
-        best_index = [i for i in best_index if path_length == max(path_length[i])]
-    best_index = best_index[random.randint(0, len(best_index))]
-    path_list = [path_list[i] for i in range(len(path_list)) if i == best_index]
-    print(path_list)
+def select_best_path(graph, path_list, path_length, weight_avg_list,delete_entry_node=False, delete_sink_node=False):
+    path_list_tmp = path_list.copy()
+    if len(weight_avg_list) >= 2 :
+        max_weight = max(weight_avg_list)
+        path_list = [path_list[i] for i in range(len(weight_avg_list)) if weight_avg_list[i] == max_weight]
+        path_length = [path_length[i] for i in range(len(weight_avg_list)) if weight_avg_list[i] == max_weight]
+    if len(path_length) >= 2 :
+        max_length = max(path_length)
+        path_list = [path_list[i] for i in range(len(path_length)) if path_length[i] == max_length]
+    print(path_list)   
+    best_path = path_list[random.randint(0, len(path_list) - 1)]
+    print(best_path)
+    path_list = [path for path in path_list_tmp if path != best_path]
     graph = remove_paths(graph, path_list, delete_entry_node, delete_sink_node)
-    print(best_index)
     return graph
     
 
@@ -142,10 +141,32 @@ def path_average_weight(graph, path):
     return weight_total / (len(path) - 1)
 
 def solve_bubble(graph, ancestor_node, descendant_node):
-    pass
+    path_list = list(nx.all_simple_paths(graph, ancestor_node,descendant_node))
+    length_list = []
+    weight_list = []
+    for path in path_list:
+        weight_list.append(path_average_weight(graph, path))
+        length_list.append(len(path))
+    graph = select_best_path(graph, path_list, length_list, weight_list)
+    return graph
 
 def simplify_bubbles(graph):
-    pass
+    bubble = False 
+    for nd in graph.nodes:
+        # if nd != None :
+        liste_predecesseurs = list(graph.predecessors(nd))
+        if len(liste_predecesseurs) > 1:
+            for i, pred1 in enumerate(liste_predecesseurs):
+                for pred2 in liste_predecesseurs[i+1:]:
+                    noeud_anc = nx.lowest_common_ancestor(graph, pred1, pred2)
+                    if noeud_anc!= None:
+                        bubble = True
+                        break
+    # La simplification ayant pour conséquence de supprimer des noeuds du hash
+    # Une approche récursive est nécessaire avec networkx
+    if bubble:                
+        graph = simplify_bubbles(solve_bubble(graph,noeud_anc, nd))                    
+    return graph
 
 def solve_entry_tips(graph, starting_nodes):
     pass
