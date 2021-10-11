@@ -107,6 +107,7 @@ def build_kmer_dict(fastq_file, kmer_size):
                 k_mer_dict[k_mer] += 1
     return k_mer_dict
 
+
 def build_graph(kmer_dict):
     """
     parameters:
@@ -120,6 +121,7 @@ def build_graph(kmer_dict):
     for key, value in kmer_dict.items():
         graph.add_edge(key[:-1], key[1:], weight=value)
     return graph
+
 
 def remove_paths(graph, path_list, delete_entry_node, delete_sink_node):
     """
@@ -172,10 +174,7 @@ def select_best_path(graph, path_list, path_length, weight_avg_list, delete_entr
     path_list = [path for path in path_list_tmp if path != best_path]
     graph = remove_paths(graph, path_list, delete_entry_node, delete_sink_node)
     return graph
-<<<<<<< HEAD
 
-=======
->>>>>>> 405618802f679b24cc2027e8d6e35869c0f6239b
 
 def path_average_weight(graph, path):
     """Caclul des poids moyens de tous les chemins
@@ -203,28 +202,17 @@ def solve_bubble(graph, ancestor_node, descendant_node):
 
 
 def simplify_bubbles(graph):
-<<<<<<< HEAD
     """supprime les bubbles dans le graphe
     Parameters : graphe
     Returns: graph sans bubbles"""
     bubble = False
     for node in graph.nodes:
         liste_predecesseurs = list(graph.predecessors(node))
-=======
-    bubble = False
-    for nd in graph.nodes:
-        # if nd != None :
-        liste_predecesseurs = list(graph.predecessors(nd))
->>>>>>> 405618802f679b24cc2027e8d6e35869c0f6239b
         if len(liste_predecesseurs) > 1:
             for i, pred1 in enumerate(liste_predecesseurs):
                 for pred2 in liste_predecesseurs[i+1:]:
                     noeud_anc = nx.lowest_common_ancestor(graph, pred1, pred2)
-<<<<<<< HEAD
                     if noeud_anc is not None:
-=======
-                    if noeud_anc != None:
->>>>>>> 405618802f679b24cc2027e8d6e35869c0f6239b
                         bubble = True
                         break
                 if bubble:
@@ -234,16 +222,11 @@ def simplify_bubbles(graph):
     # La simplification ayant pour conséquence de supprimer des noeuds du hash
     # Une approche récursive est nécessaire avec networkx
     if bubble:
-<<<<<<< HEAD
         graph = simplify_bubbles(solve_bubble(graph, noeud_anc, node))
-=======
-        graph = simplify_bubbles(solve_bubble(graph,noeud_anc, nd))
->>>>>>> 405618802f679b24cc2027e8d6e35869c0f6239b
     return graph
 
 
 def solve_entry_tips(graph, starting_nodes):
-<<<<<<< HEAD
     """supprime tous les noeuds d'entrée et garde un seul
     Parameters: graph, liste de noueds d'entrée
     Returns: graph avec un seul noued d'entrée"""
@@ -265,32 +248,10 @@ def solve_entry_tips(graph, starting_nodes):
         graph = select_best_path(graph, path_list, length_list, weight_list, True)
         starting_nodes = get_starting_nodes(graph)
         graph = solve_entry_tips(graph, starting_nodes)
-=======
-    entry = False
-    for nd in graph.nodes:
-        length_list = []
-        weight_list = []
-        path_list = []
-        if nd != None :
-            liste_predecesseurs = list(graph.predecessors(nd))
-            if len(liste_predecesseurs) > 1:
-                for start in starting_nodes:
-                    path_list += list(nx.all_simple_paths(graph, start, nd))
-                for path in path_list:
-                    weight_list.append(path_average_weight(graph, path))
-                    length_list.append(len(path))
-                    entry = True
-                break
-    if entry:
-        graph = select_best_path(graph, path_list, length_list, weight_list, True)
-        starting_nodes = get_starting_nodes(graph)
-        graph =  solve_entry_tips(graph , starting_nodes)
->>>>>>> 405618802f679b24cc2027e8d6e35869c0f6239b
     return graph
 
 
 def solve_out_tips(graph, ending_nodes):
-<<<<<<< HEAD
     """supprime tous les noeuds de sortie et garde un seul
     Parameters: graph, liste de noueds de sortie
     Returns: graph avec un seul noued de sortie"""
@@ -314,28 +275,6 @@ def solve_out_tips(graph, ending_nodes):
         graph = solve_out_tips(graph, ending_nodes)
     return graph
 
-=======
-    out = False
-    for nd in graph.nodes:
-        length_list = []
-        weight_list = []
-        path_list = []
-        if nd != None :
-            liste_successors = list(graph.successors(nd))
-            if len(liste_successors) > 1:
-                for end in ending_nodes:
-                    path_list += list(nx.all_simple_paths(graph, nd, end))
-                for path in path_list:
-                    weight_list.append(path_average_weight(graph, path))
-                    length_list.append(len(path))
-                    out = True
-                break
-    if out:
-        graph = select_best_path(graph, path_list, length_list, weight_list, False, True)
-        ending_nodes = get_sink_nodes(graph)
-        graph =  solve_out_tips(graph, ending_nodes)
-    return graph
->>>>>>> 405618802f679b24cc2027e8d6e35869c0f6239b
 
 def get_starting_nodes(graph):
     """ extraire tous les noeud d'entrée dans un graphe
@@ -391,6 +330,7 @@ def save_contigs(contigs_list, output_file):
             filout.write(">contig_{} len={}\n".format(i, length))
             filout.write(fill(seq) + "\n")
             i += 1
+
 
 def fill(text, width=80):
     """Split text with a line return to respect fasta format"""
@@ -453,7 +393,7 @@ def main():
         contigs = get_contigs(graph, starting_nodes, ending_nodes)
         save_contigs(contigs, args.output_file)
     # Fonctions de dessin du graphe
-    # A decommenter si vous souhaitez visualiser un petit
+    # A decommenter si vous souhaitez visualiser un petit 
     # graphe
     # Plot the graph
     # if args.graphimg_file:
